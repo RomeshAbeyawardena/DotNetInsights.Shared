@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <Version>1.0.0.7</Version>
+    <Authors>Romesh Abeyawardena</Authors>
+    <Company>Dotnet Insights</Company>
+    <Product>Shared</Product>
+    <AssemblyVersion>1.0.0.7</AssemblyVersion>
+    <FileVersion>1.0.0.7</FileVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Copyright>Copyright</Copyright>
+    <License>
+    </License>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/RomeshAbeyawardena/Shared</PackageProjectUrl>
+    <PackageIconUrl>Icon URL</PackageIconUrl>
+    <RepositoryUrl>https://github.com/RomeshAbeyawardena/Shared.git</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>Tags</PackageTags>
+    <PackageReleaseNotes>Release</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>

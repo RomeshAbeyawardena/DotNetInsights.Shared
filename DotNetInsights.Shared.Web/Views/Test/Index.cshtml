@@ -1,0 +1,15 @@
+<h1>Say Hello Thomas</h1>
+<p>Hello Thomas</p>
+<button id="hitMeBabyOneMoreTime" value="Bye Thomas">Bye Thomas</button>
+
+@section headSection 
+{
+    <script type="text/javascript">
+        $(function() {
+            $("#hitMeBabyOneMoreTime").click(function () {
+                $.get("http://localhost:5000/test/Test?PetType=Dog")
+                     .done();
+            });
+        });
+    </script>
+}

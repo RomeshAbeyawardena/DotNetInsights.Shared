@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<installation installDirectory="C:\Source\Repos" projectName="DotNetInsights.Shared">
+  <projects>
+    <project name="DotNetInsights.Shared.Web" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Web" />
+    <project name="DotNetInsights.Shared.Broker" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Broker" />
+    <project name="DotNetInsights.Shared.Contracts" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Contracts" />
+    <project name="DotNetInsights.Shared.Data" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Data" />
+    <project name="DotNetInsights.Shared.Domains" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Domains" />
+    <project name="DotNetInsights.Shared.Services" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Services" />
+    <project name="DotNetInsights.Shared.Shared" path="C:\Source\Repos\DotNetInsights.Shared\DotNetInsights.Shared.Shared" />
+  </projects>
+</installation>
