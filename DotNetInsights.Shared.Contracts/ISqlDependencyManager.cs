@@ -12,8 +12,7 @@ namespace DotNetInsights.Shared.Contracts
         ISqlDependencyManager AddCommandEntry(CommandEntry commandEntry);
         Task Start(string connectionString);
         void Stop(string connectionString);
-        Task Begin();
-        void End();
+        Task Listen();
         IDictionary<string, CommandEntry> CommandEntries { get; }
     }
 }

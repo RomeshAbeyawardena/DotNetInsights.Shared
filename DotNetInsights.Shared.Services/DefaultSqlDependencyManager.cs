@@ -69,7 +69,7 @@ namespace DotNetInsights.Shared.Services
         }
 
 
-        public async Task Begin()
+        public async Task Listen()
         {
             if(_sqlConnection.State != ConnectionState.Open)
                 await _sqlConnection.OpenAsync()
@@ -84,7 +84,7 @@ namespace DotNetInsights.Shared.Services
 
         }
 
-        public void End()
+        private void End()
         {
             foreach (var entry in _commandEntries)
             {
