@@ -71,6 +71,8 @@ namespace DotNetInsights.Shared.Services
 
         public async Task Listen()
         {
+            _isTriggered = false;
+
             if(_sqlConnection.State != ConnectionState.Open)
                 await _sqlConnection.OpenAsync()
                     .ConfigureAwait(false);
@@ -82,6 +84,7 @@ namespace DotNetInsights.Shared.Services
                     .ConfigureAwait(false);
             }
 
+            await IsTriggered();
         }
 
         private void End()
@@ -92,6 +95,8 @@ namespace DotNetInsights.Shared.Services
             }
         }
 
+
+
         private async Task<SqlDependency> CreateSqlDependency(CommandEntry commandEntry)
         {
             var sqlDependency = new SqlDependency();
@@ -101,7 +106,7 @@ namespace DotNetInsights.Shared.Services
             sqlDependency.AddCommandDependency(commandEntry.DbCommand);
             await commandEntry.DbCommand.ExecuteReaderAsync()
                 .ConfigureAwait(false);
-
+            
             return sqlDependency;
         }
 
@@ -115,6 +120,14 @@ namespace DotNetInsights.Shared.Services
                                  select commandEntry;
             Console.WriteLine(e);
             OnChange?.Invoke(this, new CommandEntrySqlNotificationEventArgs(commandEntries.FirstOrDefault(), e.Type, e.Info, e.Source));
+
+            _isTriggered = true;
+        }
+
+        private async Task IsTriggered()
+        {
+            while(!_isTriggered)
+                await Task.Delay(1000);
         }
 
         public DefaultSqlDependencyManager()
@@ -122,6 +135,7 @@ namespace DotNetInsights.Shared.Services
             _commandEntries = new List<CommandEntry>();
         }
 
+        private bool _isTriggered = false;
         private readonly IList<CommandEntry> _commandEntries;
         private SqlConnection _sqlConnection;
     }
