@@ -65,7 +65,7 @@ namespace DotNetInsights.Shared.Services
         private void Dispose(bool gc)
         {
             End();
-            _sqlConnection.Dispose();
+            _sqlConnection?.Dispose();
         }
 
 
@@ -85,17 +85,17 @@ namespace DotNetInsights.Shared.Services
             }
 
             await IsTriggered();
+
+            await _sqlConnection.CloseAsync();
         }
 
         private void End()
         {
             foreach (var entry in _commandEntries)
             {
-                entry.Dispose();
+                entry?.Dispose();
             }
         }
-
-
 
         private async Task<SqlDependency> CreateSqlDependency(CommandEntry commandEntry)
         {
@@ -118,7 +118,7 @@ namespace DotNetInsights.Shared.Services
             var commandEntries = from commandEntry in _commandEntries
                                  where commandEntry.SqlDependency.Id == sqlDependency.Id
                                  select commandEntry;
-            Console.WriteLine(e);
+            
             OnChange?.Invoke(this, new CommandEntrySqlNotificationEventArgs(commandEntries.FirstOrDefault(), e.Type, e.Info, e.Source));
 
             _isTriggered = true;

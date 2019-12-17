@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
-    public class SqlDependencyHostedService : IHostedService
+    public class SqlDependencyHostedService : IHostedService, IDisposable
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -50,18 +50,20 @@ namespace DotNetInsights.Shared.Services.HostedServices
 
         private async Task ProcessQueue(object state)
         {
-            if(!_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
-                && _sqlDependencyHostedServiceChangeEventQueue.TryDequeue(out var queueItem)){
+            if(_sqlDependencyHostedServiceChangeEventQueue.IsEmpty)
+            {
+                _queueTimer.Change(_sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
+                return;
+            }
+
+            if(_sqlDependencyHostedServiceChangeEventQueue.TryDequeue(out var queueItem))
+            {
                 await queueItem.SqlDependencyChangeEvent.OnChange(queueItem.CommandEntry);
 
                 _queueTimer.Change(_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
                     ? _sqlDependencyHostedServiceOptions.PollingInterval
                     : _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
-
-                return;
             }
-
-            _queueTimer.Change(_sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
         }
 
         private async Task Listen(object state)
@@ -73,9 +75,22 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await Task.CompletedTask;
+            while(!_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
+                && _sqlDependencyHostedServiceChangeEventQueue.TryDequeue(out var queueItem))
+                await queueItem.SqlDependencyChangeEvent.OnChange(queueItem.CommandEntry);
+            
             _sqlDependencyManager.Stop(_connectionString);
-            _queueTimer.Dispose();
-            _dependencyManagerTimer.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool gc)
+        {
+            _queueTimer?.Dispose();
+            _dependencyManagerTimer?.Dispose();
             _serviceScope?.Dispose();
         }
 

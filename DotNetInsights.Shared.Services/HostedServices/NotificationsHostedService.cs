@@ -11,11 +11,11 @@ namespace DotNetInsights.Shared.Services.HostedServices
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _backgroundTaskTimer = new Timer(async(state) => await Work(state)
+            _backgroundTaskTimer = new Timer(async(state) => await ProcessQueue(state)
                 .ConfigureAwait(false), null, _notificationsHostedServiceOptions.PollingInterval, Timeout.Infinite);
         }
 
-        private async Task Work(object state)
+        private async Task ProcessQueue(object state)
         {
                 if(!_notificationSubscriberQueue.IsEmpty 
                     && _notificationSubscriberQueue.TryDequeue(out var queueitem))
@@ -33,13 +33,18 @@ namespace DotNetInsights.Shared.Services.HostedServices
                 _backgroundTaskTimer.Change(_notificationsHostedServiceOptions.PollingInterval, Timeout.Infinite);
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        private async Task FlushQueue()
         {
             while(!_notificationSubscriberQueue.IsEmpty 
                     && _notificationSubscriberQueue.TryDequeue(out var queueitem))
                 await queueitem.NotificationSubscriber
                         .OnChangeAsync(queueitem.Item)
                         .ConfigureAwait(false);
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await FlushQueue();
         }
 
         public void Dispose()
