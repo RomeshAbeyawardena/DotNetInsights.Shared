@@ -8,14 +8,18 @@ namespace DotNetInsights.Shared.Services
     {
         private readonly IServiceCollection _services;
 
-        public IServiceCollection ConfigureNotifications(Action<NotificationsHostedServiceOptions> optionsAction)
+        public HostedServiceOptions ConfigureNotifications(Action<NotificationsHostedServiceOptions> optionsAction)
         {
-            return _services.AddSingleton(NotificationsHostedServiceOptions.Create(optionsAction));
+            _services
+                .AddSingleton(NotificationsHostedServiceOptions.Create(optionsAction));
+            return this;
         }
 
-        public IServiceCollection ConfigureSqlDependency(Action<SqlDependencyHostedServiceOptions> optionsAction)
+        public HostedServiceOptions ConfigureSqlDependency(Action<SqlDependencyHostedServiceOptions> optionsAction)
         {
-            return _services.AddSingleton(SqlDependencyHostedServiceOptions.Create(optionsAction));
+            _services
+                .AddSingleton(SqlDependencyHostedServiceOptions.Create(optionsAction));
+            return this;
         }
 
         private HostedServiceOptions(IServiceCollection services)

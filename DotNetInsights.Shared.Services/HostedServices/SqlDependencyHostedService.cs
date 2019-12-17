@@ -12,14 +12,6 @@ namespace DotNetInsights.Shared.Services.HostedServices
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await Task.CompletedTask;
-
-            _dependencyManagerTimer = new Timer(async(state) => await Listen(state), 
-                null, _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
-
-            _queueTimer = new Timer(async(state) => await ProcessQueue(state), 
-                null, _sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
-            
             _serviceScope = _serviceProvider.CreateScope();
             _sqlDependencyManager = _serviceScope.ServiceProvider.GetRequiredService<ISqlDependencyManager>();
 
@@ -27,6 +19,13 @@ namespace DotNetInsights.Shared.Services.HostedServices
                 .ConfigureSqlDependencyManager?.Invoke(_sqlDependencyManager);
 
             _sqlDependencyManager.OnChange += _sqlDependencyManager_OnChange;
+            await _sqlDependencyManager.Start(_connectionString);
+            _dependencyManagerTimer = new Timer(async(state) => await Listen(state), 
+                null, _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
+
+            _queueTimer = new Timer(async(state) => await ProcessQueue(state), 
+                null, _sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
+            
         }
 
         private void _sqlDependencyManager_OnChange(object sender, Domains.CommandEntrySqlNotificationEventArgs e)
@@ -58,6 +57,8 @@ namespace DotNetInsights.Shared.Services.HostedServices
                 _queueTimer.Change(_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
                     ? _sqlDependencyHostedServiceOptions.PollingInterval
                     : _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
+
+                return;
             }
 
             _queueTimer.Change(_sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
@@ -72,6 +73,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await Task.CompletedTask;
+            _sqlDependencyManager.Stop(_connectionString);
             _queueTimer.Dispose();
             _dependencyManagerTimer.Dispose();
             _serviceScope?.Dispose();
@@ -84,8 +86,10 @@ namespace DotNetInsights.Shared.Services.HostedServices
             _serviceProvider = serviceProvider;
             _sqlDependencyHostedServiceChangeEventQueue = sqlDependencyHostedServiceChangeEventQueue;
             _sqlDependencyHostedServiceOptions =  sqlDependencyHostedServiceOptions;
+            _connectionString = _sqlDependencyHostedServiceOptions.ConfigureConnectionString(_serviceProvider);
         }
 
+        private readonly string _connectionString;
         private Timer _queueTimer;
         private ISqlDependencyManager _sqlDependencyManager;
         private Timer _dependencyManagerTimer;

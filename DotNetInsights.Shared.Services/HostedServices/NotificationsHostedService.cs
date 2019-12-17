@@ -44,7 +44,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
 
         public void Dispose()
         {
-            _backgroundTaskTimer.Dispose();
+            _backgroundTaskTimer?.Dispose();
         }
 
         public NotificationsHostedService(NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Services
 {
-    public abstract class DefaultSqlDependencyChangeEvent : ISqlDependencyChangeEvent
+    public abstract class DefaultSqlDependencyChangeEvent<T> : ISqlDependencyChangeEvent<T>
     {
         public abstract Task OnChange(CommandEntrySqlNotificationEventArgs e);
 

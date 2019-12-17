@@ -23,6 +23,7 @@ namespace DotNetInsights.Shared.WebApp
         {
             services
                 .RegisterServiceBroker<AppQueueServiceBroker>(ServiceLifetime.Scoped)
+                .AddSingleton<ApplicationSettings, ApplicationSettings>()
                 .AddAutoMapper(Assembly.GetExecutingAssembly())
                 .AddScoped<IMyScopedService, MyScopedService>()
                 .ConfigureHostedServiceOptions(options => {
@@ -32,11 +33,17 @@ namespace DotNetInsights.Shared.WebApp
                     );
                     options.ConfigureSqlDependency(sqlDependencyOptions =>
                     {
+                        sqlDependencyOptions.ConfigureConnectionString = serviceProvider =>
+                        {
+                            var applicationSettings = serviceProvider.GetRequiredService<ApplicationSettings>();
+                            return applicationSettings.ConnectionString;
+                        };
                         sqlDependencyOptions.PollingInterval = 60000;
                         sqlDependencyOptions.ProcessingInterval = 60;
                     });
                 })
                 .AddHostedService<NotificationsHostedService>()
+                .AddHostedService<SqlDependencyHostedService>()
                 .AddMvc(options => options.Filters.Add<HandleModelStateErrorFilter>());
 
         }
@@ -47,6 +54,7 @@ namespace DotNetInsights.Shared.WebApp
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                
             }
             
             app.UseRouting();

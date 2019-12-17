@@ -10,7 +10,7 @@ namespace DotNetInsights.Shared.Services
         {
             action?.Invoke(this);
         }
-
+        public Func<IServiceProvider, string> ConfigureConnectionString { get; set;}
         public Action<ISqlDependencyManager> ConfigureSqlDependencyManager { get; set; }
         public int PollingInterval { get; set; }
         public int ProcessingInterval { get; set; }
