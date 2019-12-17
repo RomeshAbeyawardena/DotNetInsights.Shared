@@ -4,7 +4,7 @@ using DotNetInsights.Shared.Contracts.Factories;
 using System;
 using System.Threading.Tasks;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Services.Factories
 {
     public class DefaultEventHandlerFactory : IEventHandlerFactory
     {

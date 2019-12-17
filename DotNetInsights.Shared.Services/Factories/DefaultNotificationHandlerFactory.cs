@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Services.Factories
 {
     public class DefaultNotificationHandlerFactory : INotificationHandlerFactory
     {

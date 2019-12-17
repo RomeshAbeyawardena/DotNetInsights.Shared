@@ -31,9 +31,9 @@ namespace DotNetInsights.Shared.Services
             }
         }
 
-        public ISqlDependencyManager AddCommandEntry(string name, string command)
+        public ISqlDependencyManager AddCommandEntry(string name, string command, Type entityType)
         {
-            AddCommandEntry(CommandEntry.Create(name, command));
+            AddCommandEntry(CommandEntry.Create(name, command, entityType));
             return this;
         }
 

@@ -25,9 +25,16 @@ namespace DotNetInsights.Shared.WebApp
                 .RegisterServiceBroker<AppQueueServiceBroker>(ServiceLifetime.Scoped)
                 .AddAutoMapper(Assembly.GetExecutingAssembly())
                 .AddScoped<IMyScopedService, MyScopedService>()
-                .ConfigureNotificationsHostedServiceOptions(options => {
-                    options.PollingInterval = 60000;
-                    options.ProcessingInterval = 60;
+                .ConfigureHostedServiceOptions(options => {
+                    options.ConfigureNotifications(notificationOptions => { 
+                        notificationOptions.PollingInterval = 60000;
+                        notificationOptions.ProcessingInterval = 60; }
+                    );
+                    options.ConfigureSqlDependency(sqlDependencyOptions =>
+                    {
+                        sqlDependencyOptions.PollingInterval = 60000;
+                        sqlDependencyOptions.ProcessingInterval = 60;
+                    });
                 })
                 .AddHostedService<NotificationsHostedService>()
                 .AddMvc(options => options.Filters.Add<HandleModelStateErrorFilter>());

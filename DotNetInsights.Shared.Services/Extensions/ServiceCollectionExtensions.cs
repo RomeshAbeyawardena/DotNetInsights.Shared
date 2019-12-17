@@ -2,7 +2,6 @@
 using DotNetInsights.Shared.Contracts.Providers;
 using DotNetInsights.Shared.Services.Providers;
 using System;
-using DotNetInsights.Shared.Services.HostedServices;
 
 namespace DotNetInsights.Shared.Services.Extensions
 {
@@ -17,9 +16,10 @@ namespace DotNetInsights.Shared.Services.Extensions
             return services.AddSingleton(defaultEntityProvider);
         }
 
-        public static IServiceCollection ConfigureNotificationsHostedServiceOptions(this IServiceCollection services, Action<NotificationsHostedServiceOptions> optionsAction)
+        public static IServiceCollection ConfigureHostedServiceOptions(this IServiceCollection services, Action<HostedServiceOptions> optionsAction)
         {
-            return services.AddSingleton(NotificationsHostedServiceOptions.Create(optionsAction));
+            optionsAction(HostedServiceOptions.Create(services));
+            return services;
         }
     }
 }

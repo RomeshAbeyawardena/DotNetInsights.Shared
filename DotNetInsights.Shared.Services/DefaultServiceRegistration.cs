@@ -76,6 +76,7 @@ namespace DotNetInsights.Shared.Services
                     .CaseWhen(SerializerType.Binary, typeof(IBinarySerializer))
                     .CaseWhen(SerializerType.MessagePack, typeof(IMessagePackBinarySerializer)))
                 .AddSingleton(typeof(ICloner<>), typeof(DefaultCloner<>))
+                .AddSingleton(new ConcurrentQueue<SqlDependencyChangeEventQueueItem>())
                 .AddSingleton(new ConcurrentQueue<NotificationSubscriberQueueItem>());
         }
     }
