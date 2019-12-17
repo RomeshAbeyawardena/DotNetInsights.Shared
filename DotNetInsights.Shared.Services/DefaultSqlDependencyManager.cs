@@ -85,8 +85,6 @@ namespace DotNetInsights.Shared.Services
             }
 
             await IsTriggered();
-
-            await _sqlConnection.CloseAsync();
         }
 
         private void End()
