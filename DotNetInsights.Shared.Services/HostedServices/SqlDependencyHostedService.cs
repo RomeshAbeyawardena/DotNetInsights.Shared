@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
-    public class SqlDependencyHostedService : AsyncQueueServiceBase<SqlDependencyChangeEventQueueItem, SqlDependencyHostedServiceOptions>, IHostedService
+    public class SqlDependencyHostedService : AsyncQueueHandlerServiceBase<SqlDependencyChangeEventQueueItem, SqlDependencyHostedServiceOptions>, IHostedService
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {

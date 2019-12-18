@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Services
 {
-    public abstract class AsyncQueueServiceBase<TQueueItem, TQueueServiceOptions> : IAsyncQueueService<TQueueItem>
+    public abstract class AsyncQueueHandlerServiceBase<TQueueItem, TQueueServiceOptions> : IAsyncQueueHandlerService<TQueueItem>
         where TQueueServiceOptions : IAsyncQueueServiceOptions
     {
         public abstract Task ProcessQueueItem(TQueueItem queueItem);
@@ -29,7 +29,7 @@ namespace DotNetInsights.Shared.Services
             await FlushQueue();
         }
 
-        public AsyncQueueServiceBase(ILogger<IAsyncQueueService<TQueueItem>> logger, ConcurrentQueue<TQueueItem> asyncQueueServiceQueue,
+        public AsyncQueueHandlerServiceBase(ILogger<IAsyncQueueHandlerService<TQueueItem>> logger, ConcurrentQueue<TQueueItem> asyncQueueServiceQueue,
             TQueueServiceOptions asyncQueueServiceOptions)
         {
             _logger = logger;
@@ -66,7 +66,7 @@ namespace DotNetInsights.Shared.Services
         }
 
 
-        private readonly ILogger<IAsyncQueueService<TQueueItem>> _logger;
+        private readonly ILogger<IAsyncQueueHandlerService<TQueueItem>> _logger;
         private readonly TQueueServiceOptions _options;
         private readonly ConcurrentQueue<TQueueItem> _asyncQueueServiceQueue;
         private readonly Timer _asyncQueueServiceTimer;

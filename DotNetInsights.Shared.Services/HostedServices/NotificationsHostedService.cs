@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DotNetInsights.Shared.Services.HostedServices
 {
     public sealed class NotificationsHostedService 
-        : AsyncQueueServiceBase<NotificationSubscriberQueueItem, NotificationsHostedServiceOptions>, IHostedService
+        : AsyncQueueHandlerServiceBase<NotificationSubscriberQueueItem, NotificationsHostedServiceOptions>, IHostedService
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
