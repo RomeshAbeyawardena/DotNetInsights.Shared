@@ -61,7 +61,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
             _logger.LogInformation("Stopping SqlDependency hosted service...");
             await Task.CompletedTask;
             
-            await FlushQueue();
+            await Dispose(true);
             
             _sqlDependencyManager.Stop(_connectionString);
         }

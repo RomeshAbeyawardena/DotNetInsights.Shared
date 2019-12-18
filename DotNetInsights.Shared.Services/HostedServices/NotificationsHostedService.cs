@@ -13,7 +13,6 @@ namespace DotNetInsights.Shared.Services.HostedServices
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var isEnabled = _logger.IsEnabled(LogLevel.Information);
             _logger.LogInformation("Starting Notification hosted service...");
             
         }
@@ -21,7 +20,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Final flush of notification queue...");
-            await FlushQueue();
+            await Dispose(true);
             _logger.LogInformation("Stopping Notification hosted service...");
         }
 
