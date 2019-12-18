@@ -12,6 +12,8 @@ using DotNetInsights.Shared.Services.Middleware;
 using System.Collections.Generic;
 using DotNetInsights.Shared.Services.HostedServices;
 using DotNetInsights.Shared.Services.Extensions;
+using Microsoft.Extensions.Logging;
+using DotNetInsights.Shared.Services.Providers;
 
 namespace DotNetInsights.Shared.WebApp
 {
@@ -21,6 +23,9 @@ namespace DotNetInsights.Shared.WebApp
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //services
+            //    .AddLogging(configure => configure.AddProvider<SqlLoggerProvider>());
+
             services
                 .RegisterServiceBroker<AppQueueServiceBroker>(ServiceLifetime.Scoped)
                 .AddSingleton<ApplicationSettings, ApplicationSettings>()
@@ -28,8 +33,8 @@ namespace DotNetInsights.Shared.WebApp
                 .AddScoped<IMyScopedService, MyScopedService>()
                 .ConfigureHostedServiceOptions(options => {
                     options.ConfigureNotifications(notificationOptions => { 
-                        notificationOptions.PollingInterval = 60000;
-                        notificationOptions.ProcessingInterval = 60; }
+                        notificationOptions.PollingInterval = 30000;
+                        notificationOptions.ProcessingInterval = 30; }
                     );
                     options.ConfigureSqlDependency(sqlDependencyOptions =>
                     {
@@ -38,8 +43,17 @@ namespace DotNetInsights.Shared.WebApp
                             var applicationSettings = serviceProvider.GetRequiredService<ApplicationSettings>();
                             return applicationSettings.ConnectionString;
                         };
-                        sqlDependencyOptions.PollingInterval = 60000;
-                        sqlDependencyOptions.ProcessingInterval = 60;
+                        sqlDependencyOptions.PollingInterval = 30000;
+                        sqlDependencyOptions.ProcessingInterval = 30;
+                    })
+                    .ConfigureSqlLoggerOptions(sqlLoggerOptions => {
+                        sqlLoggerOptions.GetConnectionString = serviceProvider => {
+                            var applicationSettings = serviceProvider.GetRequiredService<ApplicationSettings>();
+                            return applicationSettings.ConnectionString;
+                        };
+                        sqlLoggerOptions.GetTableSchema = serviceProvider => "dbo";
+                        sqlLoggerOptions.GetTableName = serviceProvider => "LogEntry";
+                        sqlLoggerOptions.GetLogOptionsTableName = serviceProvider => "LogOptions";
                     });
                 })
                 .AddHostedService<NotificationsHostedService>()
@@ -58,7 +72,7 @@ namespace DotNetInsights.Shared.WebApp
             }
             
             app.UseRouting();
-
+           
             app.UseEndpoints(endpoints =>
             {
                 endpoints

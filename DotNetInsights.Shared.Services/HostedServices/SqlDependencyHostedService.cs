@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
-    public class SqlDependencyHostedService : IHostedService, IDisposable
+    public class SqlDependencyHostedService : AsyncQueueHandlerServiceBase<SqlDependencyChangeEventQueueItem, SqlDependencyHostedServiceOptions>, IHostedService
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -20,17 +20,15 @@ namespace DotNetInsights.Shared.Services.HostedServices
             _sqlDependencyHostedServiceOptions
                 .ConfigureSqlDependencyManager?.Invoke(_sqlDependencyManager);
 
-            _sqlDependencyManager.OnChange += _sqlDependencyManager_OnChange;
+            _sqlDependencyManager.OnChange += sqlDependencyManager_OnChange;
+            
             await _sqlDependencyManager.Start(_connectionString);
             _dependencyManagerTimer = new Timer(async(state) => await Listen(state), 
                 null, _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
 
-            _queueTimer = new Timer(async(state) => await ProcessQueue(state), 
-                null, _sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
-            
         }
 
-        private void _sqlDependencyManager_OnChange(object sender, Domains.CommandEntrySqlNotificationEventArgs e)
+        private void sqlDependencyManager_OnChange(object sender, Domains.CommandEntrySqlNotificationEventArgs e)
         {
             var service = typeof(ISqlDependencyChangeEvent<>); 
 
@@ -50,27 +48,6 @@ namespace DotNetInsights.Shared.Services.HostedServices
                     .Create(requestedGenericService, e));
         }
 
-        private async Task ProcessQueue(object state)
-        {
-            _logger.LogInformation("Polling queue...");
-            if(_sqlDependencyHostedServiceChangeEventQueue.IsEmpty)
-            {
-                _logger.LogDebug("Queue empty - polling mode");
-                _queueTimer.Change(_sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
-            }
-            else if(_sqlDependencyHostedServiceChangeEventQueue.TryDequeue(out var queueItem))
-            {
-                _logger.LogInformation("Processing queue item - processing mode");
-                await queueItem.SqlDependencyChangeEvent.OnChange(queueItem.CommandEntry);
-
-                _queueTimer.Change(_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
-                    ? _sqlDependencyHostedServiceOptions.PollingInterval
-                    : _sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
-            }
-            else
-               _queueTimer.Change(_sqlDependencyHostedServiceOptions.PollingInterval, Timeout.Infinite);
-        }
-
         private async Task Listen(object state)
         {
             _logger.LogInformation("Listening for database changes...");
@@ -79,39 +56,33 @@ namespace DotNetInsights.Shared.Services.HostedServices
             _dependencyManagerTimer.Change(_sqlDependencyHostedServiceOptions.ProcessingInterval, Timeout.Infinite);
         }
 
-        private async Task FlushQueue()
-        {
-            _logger.LogInformation("Flushing queue...");
-            while(!_sqlDependencyHostedServiceChangeEventQueue.IsEmpty 
-                && _sqlDependencyHostedServiceChangeEventQueue.TryDequeue(out var queueItem))
-                await queueItem.SqlDependencyChangeEvent.OnChange(queueItem.CommandEntry);
-        }
-
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Stopping SqlDependency hosted service...");
             await Task.CompletedTask;
             
-            await FlushQueue();
+            await Dispose(true);
             
             _sqlDependencyManager.Stop(_connectionString);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
 
-        protected virtual void Dispose(bool gc)
+        protected override async Task Dispose(bool gc)
         {
-            _queueTimer?.Dispose();
+            await base.Dispose(gc);
+
             _dependencyManagerTimer?.Dispose();
             _serviceScope?.Dispose();
         }
 
+        public override async Task ProcessQueueItem(SqlDependencyChangeEventQueueItem queueItem)
+        {
+            await queueItem.SqlDependencyChangeEvent.OnChange(queueItem.CommandEntry);
+        }
+
         public SqlDependencyHostedService(ILogger<SqlDependencyHostedService> logger, IServiceProvider serviceProvider, 
             ConcurrentQueue<SqlDependencyChangeEventQueueItem> sqlDependencyHostedServiceChangeEventQueue,
-            SqlDependencyHostedServiceOptions sqlDependencyHostedServiceOptions)
+            SqlDependencyHostedServiceOptions sqlDependencyHostedServiceOptions) : base(logger, sqlDependencyHostedServiceChangeEventQueue, sqlDependencyHostedServiceOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -121,7 +92,6 @@ namespace DotNetInsights.Shared.Services.HostedServices
         }
 
         private readonly string _connectionString;
-        private Timer _queueTimer;
         private ISqlDependencyManager _sqlDependencyManager;
         private Timer _dependencyManagerTimer;
         private IServiceScope _serviceScope;

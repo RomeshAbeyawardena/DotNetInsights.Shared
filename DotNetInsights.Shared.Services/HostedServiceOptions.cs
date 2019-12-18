@@ -22,6 +22,12 @@ namespace DotNetInsights.Shared.Services
             return this;
         }
 
+        public HostedServiceOptions ConfigureSqlLoggerOptions(Action<SqlLoggerOptions> configure)
+        {
+            _services.AddSingleton(SqlLoggerOptions.Create(configure));
+            return this;
+        }
+
         private HostedServiceOptions(IServiceCollection services)
         {
             _services = services;

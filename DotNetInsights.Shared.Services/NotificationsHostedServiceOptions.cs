@@ -1,8 +1,9 @@
 using System;
+using DotNetInsights.Shared.Contracts;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
-    public sealed class NotificationsHostedServiceOptions
+    public sealed class NotificationsHostedServiceOptions : IAsyncQueueServiceOptions
     {
         private NotificationsHostedServiceOptions(Action<NotificationsHostedServiceOptions> optionsAction)
         {
