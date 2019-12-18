@@ -8,6 +8,7 @@ using DotNetInsights.Shared.Contracts.Services;
 using System.Threading.Tasks;
 using DotNetInsights.Shared.Contracts;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetInsights.Shared.Services.Providers
 {
@@ -79,14 +80,18 @@ namespace DotNetInsights.Shared.Services.Providers
         private string GenerateUniqueKeyFromEncryptionKeyCandidates<TSource>(TSource value, IEnumerable<PropertyInfo> encryptionCandidateProperties)
         {
             var uniqueKeyStringBuilder = new StringBuilder();
-
+            
+            _logger.LogDebug("Generating unique key from {0} properties", encryptionCandidateProperties.Count());
             foreach(var encryptedCandidateProperty in encryptionCandidateProperties)
             {
                 var encryptionKeyCandidate = encryptedCandidateProperty.GetCustomAttribute<EncryptionKeyCandidateAttribute>();
                 uniqueKeyStringBuilder.AppendFormat(encryptionKeyCandidate.FormatProvider, encryptionKeyCandidate.Format, encryptedCandidateProperty.GetValue(value));
             }
+            
+            var encryptionKey = uniqueKeyStringBuilder.ToString();
 
-            return uniqueKeyStringBuilder.ToString();
+            _logger.LogDebug("Using {0} as known encryption key", encryptionKey);
+            return encryptionKey;
         }
 
         private PropertyInfo GetProperty(IEnumerable<PropertyInfo> properties, string propertyName)
@@ -140,12 +145,14 @@ namespace DotNetInsights.Shared.Services.Providers
             return decryptedItems.ToArray();
         }
 
-        public DefaultDomainEncryptionProvider(ICryptographicProvider cryptographicProvider, IEncryptionService encryptionService)
+        public DefaultDomainEncryptionProvider(ILogger<DefaultDomainEncryptionProvider> logger, ICryptographicProvider cryptographicProvider, IEncryptionService encryptionService)
         {
+            _logger = logger;
             _encryptionService = encryptionService;
             _cryptographicProvider = cryptographicProvider;
         }
 
+        private readonly ILogger<DefaultDomainEncryptionProvider> _logger;
         private readonly IEncryptionService _encryptionService;
         private readonly ICryptographicProvider _cryptographicProvider;
     }
