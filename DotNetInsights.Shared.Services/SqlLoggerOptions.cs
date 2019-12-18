@@ -12,7 +12,7 @@ namespace DotNetInsights.Shared.Services
         public Func<IServiceProvider, string> GetConnectionString { get; set; }
         public Func<IServiceProvider, string> GetTableSchema { get; set; }
         public Func<IServiceProvider, string> GetTableName { get; set; }
-
+        public Func<IServiceProvider, string> GetLogOptionsTableName { get; set; }
         public static SqlLoggerOptions Create(Action<SqlLoggerOptions> configure)
         {
             return new SqlLoggerOptions(configure);

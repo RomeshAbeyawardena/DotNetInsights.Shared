@@ -12,6 +12,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            var isEnabled = _logger.IsEnabled(LogLevel.Information);
             _logger.LogInformation("Starting Notification hosted service...");
             _backgroundTaskTimer = new Timer(async (state) => await ProcessQueue(state)
                 .ConfigureAwait(false), null, _notificationsHostedServiceOptions.PollingInterval, Timeout.Infinite);

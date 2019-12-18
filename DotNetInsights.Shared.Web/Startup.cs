@@ -53,6 +53,7 @@ namespace DotNetInsights.Shared.WebApp
                         };
                         sqlLoggerOptions.GetTableSchema = serviceProvider => "dbo";
                         sqlLoggerOptions.GetTableName = serviceProvider => "LogEntry";
+                        sqlLoggerOptions.GetLogOptionsTableName = serviceProvider => "LogOptions";
                     });
                 })
                 .AddHostedService<NotificationsHostedService>()
