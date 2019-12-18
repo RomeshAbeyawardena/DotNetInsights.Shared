@@ -4,7 +4,7 @@ using System;
 
 namespace DotNetInsights.Shared.Services
 {
-    public class SqlDependencyHostedServiceOptions
+    public class SqlDependencyHostedServiceOptions : IAsyncQueueServiceOptions
     {
         protected SqlDependencyHostedServiceOptions(Action<SqlDependencyHostedServiceOptions> action)
         {

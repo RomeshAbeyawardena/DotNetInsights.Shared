@@ -12,6 +12,7 @@ namespace DotNetInsights.Shared.Services.Providers
     {
         public ILogger CreateLogger(string categoryName)
         {
+            _sqlLogWriter = new SqlLogWriter(_connectionString, _tableName, _logOptionsTableName, _tableSchema);
             return new SqlLogger(categoryName, _sqlLogWriter);
         }
 
@@ -22,19 +23,22 @@ namespace DotNetInsights.Shared.Services.Providers
 
         protected virtual void Dispose(bool gc)
         {
-            _sqlLogWriter.Dispose();
+            _sqlLogWriter?.Dispose();
         }
 
         public SqlLoggerProvider(IServiceProvider serviceProvider, SqlLoggerOptions sqlLoggerOptions)
         {
-            var connectionString = sqlLoggerOptions.GetConnectionString(serviceProvider);
-            _sqlLogWriter = new SqlLogWriter(connectionString, 
-                sqlLoggerOptions.GetTableName(serviceProvider), 
-                sqlLoggerOptions.GetLogOptionsTableName(serviceProvider),
-                sqlLoggerOptions.GetTableSchema(serviceProvider));
+            _connectionString = sqlLoggerOptions.GetConnectionString(serviceProvider);
+            _tableName = sqlLoggerOptions.GetTableName(serviceProvider);
+            _logOptionsTableName = sqlLoggerOptions.GetLogOptionsTableName(serviceProvider);
+            _tableSchema = sqlLoggerOptions.GetTableSchema(serviceProvider);
         }
 
-        private readonly SqlLogWriter _sqlLogWriter;
+        private SqlLogWriter _sqlLogWriter;
+        private readonly string _connectionString;
+        private readonly string _tableName;
+        private readonly string _logOptionsTableName;
+        private readonly string _tableSchema;
     }
 
     internal class SqlLogger : ILogger
@@ -98,21 +102,17 @@ namespace DotNetInsights.Shared.Services.Providers
 
         }
 
-        private T ConsumeSqlCommand<T>(string command, Action<SqlParameterCollection> parameters,  Func<SqlCommand, T> invoke)
+        private T ConsumeSqlCommand<T>(string command, Action<SqlParameterCollection> getParameters,  Func<SqlCommand, T> getCommand)
         {
             T returnValue = default;
-            using (var sqlCommand = new SqlCommand(command, _sqlConnection)){
-
-                if(_sqlConnection.State != ConnectionState.Open)
-                    _sqlConnection.Open();
-
-                parameters(sqlCommand.Parameters);
+            _sqlConnection.Open();
+            using (var sqlCommand = new SqlCommand(command, _sqlConnection))
+            {
+                getParameters(sqlCommand.Parameters);
                 
-                returnValue = invoke(sqlCommand);
-
-                _sqlConnection.Close();
+                returnValue = getCommand(sqlCommand);
             }
-
+            _sqlConnection.Close();
             return returnValue;
         }
 
@@ -125,12 +125,13 @@ namespace DotNetInsights.Shared.Services.Providers
 
         public SqlLogWriter(string connectionString, string tableName, string logOptionsTable, string tableSchema = "dbo")
         {
-            _sqlConnection = new SqlConnection(connectionString);
+            _connectionString = connectionString;
+            _sqlConnection = new SqlConnection(_connectionString);
             _logOptionsTable = logOptionsTable;
             _tableName = tableName;
             _tableSchema = tableSchema;
         }
-
+        private readonly string _connectionString;
         private readonly string _logOptionsTable;
         private readonly string _tableName;
         private readonly string _tableSchema;

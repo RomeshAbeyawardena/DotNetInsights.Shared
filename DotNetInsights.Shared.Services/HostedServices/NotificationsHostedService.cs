@@ -20,6 +20,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Final flush of notification queue...");
             await FlushQueue();
             _logger.LogInformation("Stopping Notification hosted service...");
         }
@@ -29,20 +30,15 @@ namespace DotNetInsights.Shared.Services.HostedServices
             await queueItem.NotificationSubscriber
                     .OnChangeAsync(queueItem.Item)
                     .ConfigureAwait(false);
-
         }
 
         public NotificationsHostedService(ILogger<NotificationsHostedService> logger, NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue) 
             : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions)
         {
             _logger = logger;
-            _notificationsHostedServiceOptions = notificationsHostedServiceOptions;
-            _notificationSubscriberQueue = notificationSubscriberQueue;
 
         }
 
         private readonly ILogger<NotificationsHostedService> _logger;
-        private readonly NotificationsHostedServiceOptions _notificationsHostedServiceOptions;
-        private readonly ConcurrentQueue<NotificationSubscriberQueueItem> _notificationSubscriberQueue;
     }
 }

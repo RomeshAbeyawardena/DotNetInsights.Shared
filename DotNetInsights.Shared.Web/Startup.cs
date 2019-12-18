@@ -23,8 +23,8 @@ namespace DotNetInsights.Shared.WebApp
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services
-                .AddLogging(configure => configure.AddProvider<SqlLoggerProvider>());
+            //services
+            //    .AddLogging(configure => configure.AddProvider<SqlLoggerProvider>());
 
             services
                 .RegisterServiceBroker<AppQueueServiceBroker>(ServiceLifetime.Scoped)
@@ -33,8 +33,8 @@ namespace DotNetInsights.Shared.WebApp
                 .AddScoped<IMyScopedService, MyScopedService>()
                 .ConfigureHostedServiceOptions(options => {
                     options.ConfigureNotifications(notificationOptions => { 
-                        notificationOptions.PollingInterval = 60000;
-                        notificationOptions.ProcessingInterval = 60; }
+                        notificationOptions.PollingInterval = 30000;
+                        notificationOptions.ProcessingInterval = 30; }
                     );
                     options.ConfigureSqlDependency(sqlDependencyOptions =>
                     {

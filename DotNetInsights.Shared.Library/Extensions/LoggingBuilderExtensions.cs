@@ -8,7 +8,7 @@ namespace DotNetInsights.Shared.Library.Extensions
         public static ILoggingBuilder AddProvider<T>(this ILoggingBuilder builder)
         where T: class, ILoggerProvider
         {
-            builder.Services.AddSingleton<ILoggerProvider, T>();
+            builder.Services.AddTransient<ILoggerProvider, T>();
             return builder;
         }
     }
