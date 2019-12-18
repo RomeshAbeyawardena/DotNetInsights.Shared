@@ -29,6 +29,14 @@ namespace DotNetInsights.Shared.Services
             await FlushQueue();
         }
 
+        protected async Task FlushQueue()
+        {
+            while(!_asyncQueueServiceQueue.IsEmpty)
+                if(_asyncQueueServiceQueue.TryDequeue(out var queueItem))
+                    await ProcessQueueItem(queueItem);
+        }
+
+
         public AsyncQueueHandlerServiceBase(ILogger<IAsyncQueueHandlerService<TQueueItem>> logger, ConcurrentQueue<TQueueItem> asyncQueueServiceQueue,
             TQueueServiceOptions asyncQueueServiceOptions)
         {
@@ -44,27 +52,23 @@ namespace DotNetInsights.Shared.Services
         {
             _logger.LogInformation("Polling queue...");
             if(_asyncQueueServiceQueue.IsEmpty){
-                _logger.LogDebug("Queue empty - polling mode");
-                _asyncQueueServiceTimer.Change(_options.PollingInterval, Timeout.Infinite);
-                return;
+                _logger.LogDebug("Queue empty: waiting on Queue...", _options.PollingInterval);
+                await QueueHasItems();
             }
-            
-            await FlushQueue();
 
-            _logger.LogInformation("Processing queue item - processing mode");
+            _logger.LogInformation("Processing queue items...");
+            await FlushQueue();
 
             _asyncQueueServiceTimer.Change(_asyncQueueServiceQueue.IsEmpty 
                 ? _options.PollingInterval 
                 : _options.ProcessingInterval, Timeout.Infinite);
         }
 
-        protected async Task FlushQueue()
+        private async Task QueueHasItems()
         {
-            while(!_asyncQueueServiceQueue.IsEmpty)
-                if(_asyncQueueServiceQueue.TryDequeue(out var queueItem))
-                    await ProcessQueueItem(queueItem);
+            while(_asyncQueueServiceQueue.IsEmpty)
+                await Task.Delay(1000);
         }
-
 
         private readonly ILogger<IAsyncQueueHandlerService<TQueueItem>> _logger;
         private readonly TQueueServiceOptions _options;

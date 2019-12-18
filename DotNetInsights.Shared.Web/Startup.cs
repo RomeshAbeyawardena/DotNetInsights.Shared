@@ -43,8 +43,8 @@ namespace DotNetInsights.Shared.WebApp
                             var applicationSettings = serviceProvider.GetRequiredService<ApplicationSettings>();
                             return applicationSettings.ConnectionString;
                         };
-                        sqlDependencyOptions.PollingInterval = 60000;
-                        sqlDependencyOptions.ProcessingInterval = 60;
+                        sqlDependencyOptions.PollingInterval = 30000;
+                        sqlDependencyOptions.ProcessingInterval = 30;
                     })
                     .ConfigureSqlLoggerOptions(sqlLoggerOptions => {
                         sqlLoggerOptions.GetConnectionString = serviceProvider => {
