@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNetInsights.Shared.Library.Options;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
@@ -61,15 +62,15 @@ namespace DotNetInsights.Shared.Services.HostedServices
             _logger.LogInformation("Stopping SqlDependency hosted service...");
             await Task.CompletedTask;
             
-            await Dispose(true);
+            await DisposeAsync(true);
             
             _sqlDependencyManager.Stop(_connectionString);
         }
 
 
-        protected override async Task Dispose(bool gc)
+        protected override async Task DisposeAsync(bool gc)
         {
-            await base.Dispose(gc);
+            await base.DisposeAsync(gc);
 
             _dependencyManagerTimer?.Dispose();
             _serviceScope?.Dispose();

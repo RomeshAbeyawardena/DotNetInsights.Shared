@@ -1,6 +1,6 @@
 using DotNetInsights.Shared.Contracts;
 
-namespace DotNetInsights.Shared.Services.HostedServices
+namespace DotNetInsights.Shared.Services
 {
     public sealed class NotificationSubscriberQueueItem
     {

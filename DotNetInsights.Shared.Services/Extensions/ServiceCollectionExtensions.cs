@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using DotNetInsights.Shared.Services.Options;
 using DotNetInsights.Shared.Contracts.Providers;
 using DotNetInsights.Shared.Services.Providers;
 using System;

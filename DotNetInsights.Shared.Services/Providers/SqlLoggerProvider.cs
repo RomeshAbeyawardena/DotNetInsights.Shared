@@ -2,9 +2,10 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
+using DotNetInsights.Shared.Services.Options;
 using System.Data;
 using System.Text;
+using DotNetInsights.Shared.Library.Options;
 
 namespace DotNetInsights.Shared.Services.Providers
 {

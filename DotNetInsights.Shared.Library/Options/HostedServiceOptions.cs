@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using DotNetInsights.Shared.Services.HostedServices;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Library.Options
 {
     public sealed class HostedServiceOptions
     {

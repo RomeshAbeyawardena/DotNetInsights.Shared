@@ -15,15 +15,16 @@ namespace DotNetInsights.Shared.Services
         
         public async Task DisposeAsync()
         {
-            await Dispose(true);
+            await DisposeAsync(true);
         }
         
         ValueTask IAsyncDisposable.DisposeAsync()
         {
-            return new ValueTask();
+            return new ValueTask(DisposeAsync(true));
+            
         }
 
-        protected virtual async Task Dispose(bool gc)
+        protected virtual async Task DisposeAsync(bool gc)
         {
             _asyncQueueServiceTimer.Dispose();
             await FlushQueue();
@@ -68,6 +69,16 @@ namespace DotNetInsights.Shared.Services
         {
             while(_asyncQueueServiceQueue.IsEmpty)
                 await Task.Delay(1000);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool gc)
+        {
+            _asyncQueueServiceTimer.Dispose();
         }
 
         private readonly ILogger<IAsyncQueueHandlerService<TQueueItem>> _logger;
