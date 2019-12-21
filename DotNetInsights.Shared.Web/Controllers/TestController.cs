@@ -5,12 +5,11 @@ using DotNetInsights.Shared.Services.Extensions;
 using DotNetInsights.Shared.WebApp.Handlers;
 using System.Threading.Tasks;
 using DotNetInsights.Shared.Domains.Enumerations;
-using DotNetInsights.Shared.Services.Exceptions;
+using DotNetInsights.Shared.Services.Abstractions;
 
 namespace DotNetInsights.Shared.WebApp.Controllers
 {
-    [Route("{controller}/{action}")]
-    public class TestController : Controller
+    public class TestController : Services.Abstractions.ControllerBase
     {
         public TestController(IMediator mediator)
         {

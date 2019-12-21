@@ -4,7 +4,7 @@ using DotNetInsights.Shared.Contracts;
 using DotNetInsights.Shared.Services.Attributes;
 using System.Collections.Generic;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Services.Abstractions
 {
     [BadRequestOnInvalidModelState, Route("{controller}/{action}", Order = 99)]
     public abstract class ControllerBase : Controller

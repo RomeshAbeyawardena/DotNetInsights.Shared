@@ -5,7 +5,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Services.Abstractions
 {
     public abstract class DefaultBaseValidator<TModel> : IValidator<TModel>
     {

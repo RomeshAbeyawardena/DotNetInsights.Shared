@@ -26,8 +26,9 @@ namespace DotNetInsights.Shared.Services
 
         protected virtual async Task DisposeAsync(bool gc)
         {
-            _asyncQueueServiceTimer.Dispose();
             await FlushQueue();
+            _asyncQueueServiceTimer.Dispose();
+            
         }
 
         protected async Task FlushQueue()
