@@ -2,7 +2,7 @@
 using DotNetInsights.Shared.Domains;
 using System;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Library.Options
 {
     public class SqlDependencyHostedServiceOptions : IAsyncQueueServiceOptions
     {

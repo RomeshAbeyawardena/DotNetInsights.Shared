@@ -1,4 +1,6 @@
-using DotNetInsights.Shared.Contracts;
+
+using DotNetInsights.Shared.Library;
+using DotNetInsights.Shared.Library.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,13 +16,14 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Notification hosted service...");
+            await Task.CompletedTask;
             
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Final flush of notification queue...");
-            await Dispose(true);
+            await DisposeAsync(true);
             _logger.LogInformation("Stopping Notification hosted service...");
         }
 
@@ -32,7 +35,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         }
 
         public NotificationsHostedService(ILogger<NotificationsHostedService> logger, NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue) 
-            : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions)
+            : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions, true)
         {
             _logger = logger;
 

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Contracts.Services
 {
-    public interface IAsyncQueueHandlerService<TQueueItem> : IAsyncDisposable
+    public interface IAsyncQueueHandlerService<TQueueItem> : IQueueHandlerService<TQueueItem, Task>, IAsyncDisposable
     {
-        Task ProcessQueueItem(TQueueItem queueItem);
+        
     }
 }

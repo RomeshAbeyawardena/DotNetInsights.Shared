@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace DotNetInsights.Shared.Services
 {
@@ -15,12 +16,13 @@ namespace DotNetInsights.Shared.Services
 
     public sealed class Switch<TKey, TValue> : ISwitch<TKey, TValue>
     {
-        private readonly IDictionary<TKey, TValue> _switchDictionary;
-        private readonly IDictionary<TKey, TKey> _aliasDictionary;
+        private readonly ConcurrentDictionary<TKey, TValue> _switchDictionary;
+        private readonly ConcurrentDictionary<TKey, TKey> _aliasDictionary;
+
         public Switch()
         {
-            _switchDictionary = new Dictionary<TKey, TValue>();
-            _aliasDictionary = new Dictionary<TKey, TKey>();
+            _switchDictionary = new ConcurrentDictionary<TKey, TValue>();
+            _aliasDictionary = new ConcurrentDictionary<TKey, TKey>();
         }
 
         public TValue this[TKey key] => _switchDictionary[key];
@@ -50,10 +52,10 @@ namespace DotNetInsights.Shared.Services
             foreach(var alias in aliases)
             {
                 if(!_aliasDictionary.ContainsKey(alias))
-                    _aliasDictionary.Add(alias, key);
+                    _aliasDictionary.TryAdd(alias, key);
             }
 
-            _switchDictionary.Add(key, value);
+            _switchDictionary.TryAdd(key, value);
             return this;
         }
 

@@ -15,15 +15,16 @@ namespace DotNetInsights.Shared.Services
         
         public async Task DisposeAsync()
         {
-            await Dispose(true);
+            await DisposeAsync(true);
         }
         
         ValueTask IAsyncDisposable.DisposeAsync()
         {
-            return new ValueTask();
+            return new ValueTask(DisposeAsync(true));
+            
         }
 
-        protected virtual async Task Dispose(bool gc)
+        protected virtual async Task DisposeAsync(bool gc)
         {
             _asyncQueueServiceTimer.Dispose();
             await FlushQueue();
@@ -38,7 +39,7 @@ namespace DotNetInsights.Shared.Services
 
 
         public AsyncQueueHandlerServiceBase(ILogger<IAsyncQueueHandlerService<TQueueItem>> logger, ConcurrentQueue<TQueueItem> asyncQueueServiceQueue,
-            TQueueServiceOptions asyncQueueServiceOptions)
+            TQueueServiceOptions asyncQueueServiceOptions, bool logQueueProcess)
         {
             _logger = logger;
             _options = asyncQueueServiceOptions;
@@ -46,17 +47,19 @@ namespace DotNetInsights.Shared.Services
             _asyncQueueServiceTimer = new Timer(async(state) => 
                 await ProcessQueue(state), null,
                 _options.PollingInterval, Timeout.Infinite);
+            _logQueueProcess = logQueueProcess;
         }
 
         private async Task ProcessQueue(object state)
         {
-            _logger.LogInformation("Polling queue...");
+            Log(logger => logger.LogInformation("Polling queue..."));
             if(_asyncQueueServiceQueue.IsEmpty){
-                _logger.LogDebug("Queue empty: waiting on Queue...", _options.PollingInterval);
+
+                Log(logger => logger.LogDebug("Queue empty: waiting on Queue...", _options.PollingInterval));
                 await QueueHasItems();
             }
 
-            _logger.LogInformation("Processing queue items...");
+            Log(logger => logger.LogInformation("Processing queue items..."));
             await FlushQueue();
 
             _asyncQueueServiceTimer.Change(_asyncQueueServiceQueue.IsEmpty 
@@ -70,9 +73,26 @@ namespace DotNetInsights.Shared.Services
                 await Task.Delay(1000);
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool gc)
+        {
+            _asyncQueueServiceTimer.Dispose();
+        }
+
+        private void Log(Action<ILogger<IAsyncQueueHandlerService<TQueueItem>>> loggerAction)
+        {
+            if(_logQueueProcess)
+                loggerAction(_logger);
+        }
+
         private readonly ILogger<IAsyncQueueHandlerService<TQueueItem>> _logger;
         private readonly TQueueServiceOptions _options;
         private readonly ConcurrentQueue<TQueueItem> _asyncQueueServiceQueue;
         private readonly Timer _asyncQueueServiceTimer;
+        private readonly bool _logQueueProcess;
     }
 }

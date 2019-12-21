@@ -5,18 +5,16 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Concurrent;
 using DotNetInsights.Shared.Services.HostedServices;
+using DotNetInsights.Shared.Library;
 
 namespace DotNetInsights.Shared.Services
 {
-    public sealed class DefaultNotificationHandler<TEvent> : INotificationHandler<TEvent>
+    public sealed class DefaultNotificationHandler<TEvent> : QueueServiceBase<NotificationSubscriberQueueItem>, INotificationHandler<TEvent>
     {
         public void Notify(TEvent @event)
         {
             foreach(var notificationSubscriber in _notificationSubscribersList)
-            {
-                _notificationSubscriberQueue
-                    .Enqueue(NotificationSubscriberQueueItem.Create(notificationSubscriber, @event));
-            }
+                Enqueue(NotificationSubscriberQueueItem.Create(notificationSubscriber, @event));
         }
 
         public void Notify(object @event)
@@ -50,7 +48,7 @@ namespace DotNetInsights.Shared.Services
                 Console.WriteLine("{0}: {1}", eventType, notificationType);
 
                 if(t.All(ty => m.Contains(ty)))
-                    _notificationSubscriberQueue.Enqueue(NotificationSubscriberQueueItem.Create(notificationSubscriber, @event));
+                    Enqueue(NotificationSubscriberQueueItem.Create(notificationSubscriber, @event));
             }
         }
 
@@ -60,12 +58,11 @@ namespace DotNetInsights.Shared.Services
         }
 
         public DefaultNotificationHandler(ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue)
+            : base(notificationSubscriberQueue)
         {
-            _notificationSubscriberQueue = notificationSubscriberQueue;
             _notificationSubscribersList = new List<INotificationSubscriber>();
         }
 
-        private readonly ConcurrentQueue<NotificationSubscriberQueueItem> _notificationSubscriberQueue;
         private readonly IList<INotificationSubscriber> _notificationSubscribersList;
     }
 }

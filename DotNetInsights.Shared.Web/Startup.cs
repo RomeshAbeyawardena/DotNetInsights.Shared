@@ -23,8 +23,8 @@ namespace DotNetInsights.Shared.WebApp
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            //services
-            //    .AddLogging(configure => configure.AddProvider<SqlLoggerProvider>());
+            services
+                .AddLogging(configure => configure.AddProvider<SqlLoggerProvider>());
 
             services
                 .RegisterServiceBroker<AppQueueServiceBroker>(ServiceLifetime.Scoped)
@@ -58,6 +58,7 @@ namespace DotNetInsights.Shared.WebApp
                 })
                 .AddHostedService<NotificationsHostedService>()
                 .AddHostedService<SqlDependencyHostedService>()
+                .AddHostedService<SqlLoggingHostedService>()
                 .AddMvc(options => options.Filters.Add<HandleModelStateErrorFilter>());
 
         }
@@ -89,9 +90,16 @@ namespace DotNetInsights.Shared.WebApp
 
     public class MyScopedService : IMyScopedService
     {
+        private readonly ILogger<IMyScopedService> _logger;
+
         public void Execute()
         {
-            Console.WriteLine("Subscriber OnChange called!");
+            _logger.LogInformation("Subscriber OnChange called!");
+        }
+
+        public MyScopedService(ILogger<IMyScopedService> logger)
+        {
+            _logger = logger;
         }
     }
 
