@@ -20,7 +20,7 @@ namespace DotNetInsights.Shared.Services
 
         protected DefinedServiceScopeBase(IServiceProvider serviceProvider)
         {
-            ServiceScope = serviceProvider.CreateScope()
+            ServiceScope = serviceProvider.CreateScope();
         }
     }
 }

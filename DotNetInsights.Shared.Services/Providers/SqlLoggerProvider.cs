@@ -2,10 +2,13 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
-using DotNetInsights.Shared.Services.Options;
 using System.Data;
-using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using DotNetInsights.Shared.Library.Options;
+using DotNetInsights.Shared.Contracts.Services;
+using DotNetInsights.Shared.Domains;
+using DotNetInsights.Shared.Library;
+using System.Collections.Concurrent;
 
 namespace DotNetInsights.Shared.Services.Providers
 {
@@ -13,8 +16,7 @@ namespace DotNetInsights.Shared.Services.Providers
     {
         public ILogger CreateLogger(string categoryName)
         {
-            _sqlLogWriter = new SqlLogWriter(_connectionString, _tableName, _logOptionsTableName, _tableSchema);
-            return new SqlLogger(categoryName, _sqlLogWriter);
+            return new SqlLogger(_serviceProvider, categoryName);
         }
 
         public void Dispose()
@@ -24,18 +26,20 @@ namespace DotNetInsights.Shared.Services.Providers
 
         protected virtual void Dispose(bool gc)
         {
-            _sqlLogWriter?.Dispose();
+            
         }
 
         public SqlLoggerProvider(IServiceProvider serviceProvider, SqlLoggerOptions sqlLoggerOptions)
         {
+            _serviceProvider = serviceProvider;
             _connectionString = sqlLoggerOptions.GetConnectionString(serviceProvider);
             _tableName = sqlLoggerOptions.GetTableName(serviceProvider);
             _logOptionsTableName = sqlLoggerOptions.GetLogOptionsTableName(serviceProvider);
             _tableSchema = sqlLoggerOptions.GetTableSchema(serviceProvider);
         }
 
-        private SqlLogWriter _sqlLogWriter;
+        private ILoggingService _loggingService;
+        private readonly IServiceProvider _serviceProvider;
         private readonly string _connectionString;
         private readonly string _tableName;
         private readonly string _logOptionsTableName;
@@ -45,29 +49,37 @@ namespace DotNetInsights.Shared.Services.Providers
     internal class SqlLogger : ILogger
     {
         private string _categoryName;
-        private SqlLogWriter _sqlLogWriter;
+        private IServiceProvider _serviceProvider;
         private object _state;
         public IDisposable BeginScope<TState>(TState state)
         {
-            return _sqlLogWriter;
+            _serviceScope = _serviceProvider.CreateScope();
+            return _serviceScope;
         }
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return _sqlLogWriter.IsEnabled(logLevel);
+            return true;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _sqlLogWriter.WriteEntry(logLevel, eventId, formatter(state, exception), DateTime.Now);
+            var loggingQueue = _serviceProvider.GetRequiredService<ConcurrentQueue<SqlLoggerQueueItem>>();
+            loggingQueue.Enqueue(new SqlLoggerQueueItem { 
+                Category = _categoryName,
+                LogLevelId = (int) logLevel, 
+                EventId = eventId.Id, 
+                FormattedString = formatter(state, exception), 
+                Created = DateTime.Now });
         }
 
-        public SqlLogger(string categoryName, SqlLogWriter sqlLogWriter)
+        public SqlLogger(IServiceProvider serviceProvider, string categoryName)
         {
             _categoryName = categoryName;
-            _sqlLogWriter = sqlLogWriter;
-            _sqlLogWriter.CategoryName = _categoryName;
+            _serviceProvider = serviceProvider;
         }
+        private ILoggingService _loggingService;
+        private IServiceScope _serviceScope;
     }
 
     internal class SqlLogWriter : IDisposable

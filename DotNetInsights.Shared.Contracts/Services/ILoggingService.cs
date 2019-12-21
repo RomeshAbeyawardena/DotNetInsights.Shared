@@ -1,10 +1,11 @@
 using DotNetInsights.Shared.Domains;
+using System;
 using System.Threading.Tasks;
 
 namespace DotNetInsights.Shared.Contracts.Services
 {
-    public interface ILoggingService
+    public interface ILoggingService : IDisposable
     {
-        Task LogEntry(LogEntry logEntry);
+        Task<int> LogEntry(LogEntry logEntry);
     }
 }

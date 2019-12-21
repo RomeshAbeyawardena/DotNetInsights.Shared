@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Concurrent;
-
+using DotNetInsights.Shared.Library;
 
 namespace DotNetInsights.Shared.Services
 {
@@ -76,9 +76,12 @@ namespace DotNetInsights.Shared.Services
                     .CaseWhen(SerializerType.Binary, typeof(IBinarySerializer))
                     .CaseWhen(SerializerType.MessagePack, typeof(IMessagePackBinarySerializer)))
                 .AddSingleton(typeof(ICloner<>), typeof(DefaultCloner<>))
+                .AddScoped<ILoggingService, SqlLoggingService>()
                 .AddScoped<ISqlDependencyManager, DefaultSqlDependencyManager>()
                 .AddSingleton(new ConcurrentQueue<SqlDependencyChangeEventQueueItem>())
-                .AddSingleton(new ConcurrentQueue<NotificationSubscriberQueueItem>());
+                .AddSingleton<SqlDependencyChangeEventQueue, SqlDependencyChangeEventQueue>()
+                .AddSingleton(new ConcurrentQueue<NotificationSubscriberQueueItem>())
+                .AddSingleton(new ConcurrentQueue<SqlLoggerQueueItem>());
         }
     }
 }

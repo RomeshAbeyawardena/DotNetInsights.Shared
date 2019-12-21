@@ -1,4 +1,5 @@
 
+using DotNetInsights.Shared.Library;
 using DotNetInsights.Shared.Library.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         }
 
         public NotificationsHostedService(ILogger<NotificationsHostedService> logger, NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue) 
-            : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions)
+            : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions, true)
         {
             _logger = logger;
 

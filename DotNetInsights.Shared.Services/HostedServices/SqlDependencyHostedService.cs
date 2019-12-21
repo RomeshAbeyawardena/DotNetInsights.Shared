@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetInsights.Shared.Library.Options;
+using DotNetInsights.Shared.Library;
 
 namespace DotNetInsights.Shared.Services.HostedServices
 {
@@ -44,7 +45,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
             if(requestedGenericService == null)
                 return;
 
-            _sqlDependencyHostedServiceChangeEventQueue
+            _sqlDependencyChangeEventQueue
                 .Enqueue(SqlDependencyChangeEventQueueItem
                     .Create(requestedGenericService, e));
         }
@@ -82,12 +83,13 @@ namespace DotNetInsights.Shared.Services.HostedServices
         }
 
         public SqlDependencyHostedService(ILogger<SqlDependencyHostedService> logger, IServiceProvider serviceProvider, 
-            ConcurrentQueue<SqlDependencyChangeEventQueueItem> sqlDependencyHostedServiceChangeEventQueue,
-            SqlDependencyHostedServiceOptions sqlDependencyHostedServiceOptions) : base(logger, sqlDependencyHostedServiceChangeEventQueue, sqlDependencyHostedServiceOptions)
+            SqlDependencyChangeEventQueue sqlDependencyChangeEventQueue,
+            SqlDependencyHostedServiceOptions sqlDependencyHostedServiceOptions) : base(logger, 
+                sqlDependencyChangeEventQueue.Queue, sqlDependencyHostedServiceOptions, true)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _sqlDependencyHostedServiceChangeEventQueue = sqlDependencyHostedServiceChangeEventQueue;
+            _sqlDependencyChangeEventQueue = sqlDependencyChangeEventQueue;
             _sqlDependencyHostedServiceOptions =  sqlDependencyHostedServiceOptions;
             _connectionString = _sqlDependencyHostedServiceOptions.ConfigureConnectionString(_serviceProvider);
         }
@@ -98,7 +100,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         private IServiceScope _serviceScope;
         private readonly ILogger<SqlDependencyHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ConcurrentQueue<SqlDependencyChangeEventQueueItem> _sqlDependencyHostedServiceChangeEventQueue;
+        private readonly SqlDependencyChangeEventQueue _sqlDependencyChangeEventQueue;
         private readonly SqlDependencyHostedServiceOptions _sqlDependencyHostedServiceOptions;
     }
 }

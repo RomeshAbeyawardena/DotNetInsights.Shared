@@ -1,4 +1,5 @@
 using DotNetInsights.Shared.Contracts.Services;
+using DotNetInsights.Shared.Library;
 using DotNetInsights.Shared.Library.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,27 +17,26 @@ namespace DotNetInsights.Shared.Services.HostedServices
         {
             using var serviceScope = _serviceProvider.CreateScope();
 
-            var loggingService = serviceScope.ServiceProvider.GetRequiredService<ILoggingService>();
+            var loggingService = serviceScope.ServiceProvider
+                .GetRequiredService<ILoggingService>();
             
             await loggingService.LogEntry(queueItem);
         }
 
-        
-
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await DisposeAsync();
         }
 
         public SqlLoggingHostedService(IServiceProvider serviceProvider, ILogger<SqlLoggingHostedService> logger, 
             ConcurrentQueue<SqlLoggerQueueItem> queue, 
             SqlLoggerOptions sqlLoggerOptions)
-            : base (logger, queue, sqlLoggerOptions)
+            : base (logger, queue, sqlLoggerOptions, false) //don't open this big can of worms by changing false to true!!
         {
             _serviceProvider = serviceProvider;
         }

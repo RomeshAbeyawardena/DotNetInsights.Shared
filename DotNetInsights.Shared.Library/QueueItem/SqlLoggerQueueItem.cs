@@ -1,6 +1,6 @@
 using DotNetInsights.Shared.Domains;
 
-namespace DotNetInsights.Shared.Services
+namespace DotNetInsights.Shared.Library
 {
     public sealed class SqlLoggerQueueItem : LogEntry
     {
