@@ -16,8 +16,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting SqlDependency hosted service...");
-            _serviceScope = _serviceProvider.CreateScope();
-            _sqlDependencyManager = _serviceScope.ServiceProvider.GetRequiredService<ISqlDependencyManager>();
+            _sqlDependencyManager = ServiceScope.ServiceProvider.GetRequiredService<ISqlDependencyManager>();
 
             _sqlDependencyHostedServiceOptions
                 .ConfigureSqlDependencyManager?.Invoke(_sqlDependencyManager);
@@ -39,7 +38,7 @@ namespace DotNetInsights.Shared.Services.HostedServices
 
             var requestGenericService = service.MakeGenericType(e.CommandEntry.EntityType);
 
-            var requestedGenericService = (ISqlDependencyChangeEvent) _serviceScope
+            var requestedGenericService = (ISqlDependencyChangeEvent) ServiceScope
                 .ServiceProvider.GetRequiredService(requestGenericService);
 
             if(requestedGenericService == null)
@@ -74,7 +73,6 @@ namespace DotNetInsights.Shared.Services.HostedServices
             await base.DisposeAsync(gc);
 
             _dependencyManagerTimer?.Dispose();
-            _serviceScope?.Dispose();
         }
 
         public override async Task ProcessQueueItem(SqlDependencyChangeEventQueueItem queueItem)
@@ -85,21 +83,18 @@ namespace DotNetInsights.Shared.Services.HostedServices
         public SqlDependencyHostedService(ILogger<SqlDependencyHostedService> logger, IServiceProvider serviceProvider, 
             SqlDependencyChangeEventQueue sqlDependencyChangeEventQueue,
             SqlDependencyHostedServiceOptions sqlDependencyHostedServiceOptions) : base(logger, 
-                sqlDependencyChangeEventQueue.Queue, sqlDependencyHostedServiceOptions, true)
+                serviceProvider, sqlDependencyChangeEventQueue.Queue, sqlDependencyHostedServiceOptions, true)
         {
             _logger = logger;
-            _serviceProvider = serviceProvider;
             _sqlDependencyChangeEventQueue = sqlDependencyChangeEventQueue;
             _sqlDependencyHostedServiceOptions =  sqlDependencyHostedServiceOptions;
-            _connectionString = _sqlDependencyHostedServiceOptions.ConfigureConnectionString(_serviceProvider);
+            _connectionString = _sqlDependencyHostedServiceOptions.ConfigureConnectionString(serviceProvider);
         }
 
         private readonly string _connectionString;
         private ISqlDependencyManager _sqlDependencyManager;
         private Timer _dependencyManagerTimer;
-        private IServiceScope _serviceScope;
         private readonly ILogger<SqlDependencyHostedService> _logger;
-        private readonly IServiceProvider _serviceProvider;
         private readonly SqlDependencyChangeEventQueue _sqlDependencyChangeEventQueue;
         private readonly SqlDependencyHostedServiceOptions _sqlDependencyHostedServiceOptions;
     }
