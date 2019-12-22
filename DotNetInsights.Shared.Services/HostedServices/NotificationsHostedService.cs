@@ -34,8 +34,8 @@ namespace DotNetInsights.Shared.Services.HostedServices
                     .ConfigureAwait(false);
         }
 
-        public NotificationsHostedService(ILogger<NotificationsHostedService> logger, NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue) 
-            : base(logger, notificationSubscriberQueue, notificationsHostedServiceOptions, true)
+        public NotificationsHostedService(ILogger<NotificationsHostedService> logger, NotificationsHostedServiceOptions notificationsHostedServiceOptions, ConcurrentQueue<NotificationSubscriberQueueItem> notificationSubscriberQueue, IServiceProvider serviceProvider) 
+            : base(logger, serviceProvider, notificationSubscriberQueue, notificationsHostedServiceOptions, true)
         {
             _logger = logger;
 

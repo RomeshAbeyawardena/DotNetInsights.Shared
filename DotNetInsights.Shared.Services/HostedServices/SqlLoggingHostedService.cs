@@ -15,11 +15,9 @@ namespace DotNetInsights.Shared.Services.HostedServices
     {
         public override async Task ProcessQueueItem(SqlLoggerQueueItem queueItem)
         {
-            using var serviceScope = _serviceProvider.CreateScope();
-
-            var loggingService = serviceScope.ServiceProvider
+            var loggingService = ServiceScope.ServiceProvider
                 .GetRequiredService<ILoggingService>();
-            
+
             await loggingService.LogEntry(queueItem);
         }
 
@@ -33,14 +31,12 @@ namespace DotNetInsights.Shared.Services.HostedServices
             await DisposeAsync();
         }
 
-        public SqlLoggingHostedService(IServiceProvider serviceProvider, ILogger<SqlLoggingHostedService> logger, 
-            ConcurrentQueue<SqlLoggerQueueItem> queue, 
+        public SqlLoggingHostedService(IServiceProvider serviceProvider, ILogger<SqlLoggingHostedService> logger,
+            ConcurrentQueue<SqlLoggerQueueItem> queue,
             SqlLoggerOptions sqlLoggerOptions)
-            : base (logger, queue, sqlLoggerOptions, false) //don't open this big can of worms by changing false to true!!
+            : base(logger, serviceProvider, queue, sqlLoggerOptions, false) //don't open this big can of worms by changing false to true!!
         {
-            _serviceProvider = serviceProvider;
-        }
 
-        private readonly IServiceProvider _serviceProvider;
+        }
     }
 }

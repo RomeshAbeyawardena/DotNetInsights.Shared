@@ -1,5 +1,6 @@
 using DotNetInsights.Shared.Contracts;
 using DotNetInsights.Shared.Contracts.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -26,9 +27,9 @@ namespace DotNetInsights.Shared.Services
 
         protected virtual async Task DisposeAsync(bool gc)
         {
-            await FlushQueue();
+            ServiceScope.Dispose();
             _asyncQueueServiceTimer.Dispose();
-            
+            await FlushQueue();
         }
 
         protected async Task FlushQueue()
@@ -39,8 +40,8 @@ namespace DotNetInsights.Shared.Services
         }
 
 
-        public AsyncQueueHandlerServiceBase(ILogger<IAsyncQueueHandlerService<TQueueItem>> logger, ConcurrentQueue<TQueueItem> asyncQueueServiceQueue,
-            TQueueServiceOptions asyncQueueServiceOptions, bool logQueueProcess)
+        public AsyncQueueHandlerServiceBase(ILogger<IAsyncQueueHandlerService<TQueueItem>> logger, IServiceProvider serviceProvider, 
+            ConcurrentQueue<TQueueItem> asyncQueueServiceQueue, TQueueServiceOptions asyncQueueServiceOptions, bool logQueueProcess)
         {
             _logger = logger;
             _options = asyncQueueServiceOptions;
@@ -49,6 +50,7 @@ namespace DotNetInsights.Shared.Services
                 await ProcessQueue(state), null,
                 _options.PollingInterval, Timeout.Infinite);
             _logQueueProcess = logQueueProcess;
+            ServiceScope = serviceProvider.CreateScope();
         }
 
         private async Task ProcessQueue(object state)
@@ -81,6 +83,7 @@ namespace DotNetInsights.Shared.Services
 
         protected virtual void Dispose(bool gc)
         {
+            ServiceScope.Dispose();
             _asyncQueueServiceTimer.Dispose();
         }
 
@@ -90,6 +93,7 @@ namespace DotNetInsights.Shared.Services
                 loggerAction(_logger);
         }
 
+        protected readonly IServiceScope ServiceScope;
         private readonly ILogger<IAsyncQueueHandlerService<TQueueItem>> _logger;
         private readonly TQueueServiceOptions _options;
         private readonly ConcurrentQueue<TQueueItem> _asyncQueueServiceQueue;
