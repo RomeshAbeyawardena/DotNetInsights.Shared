@@ -53,7 +53,8 @@ namespace DotNetInsights.Shared.Services
 
         public object Run(Func<TStartup, object> getMember)
         {
-            return getMember.Try(StartupService, ex => logger.LogError(ex, "An error occurred"), catchAll: true);
+            //, ex => logger.LogError(ex, "An error occurred"), catchAll: true
+            return ExceptionHandler.Try(() => getMember())
         }
 
         public async Task RunAsync(Func<TStartup, Task> getMemberTask)

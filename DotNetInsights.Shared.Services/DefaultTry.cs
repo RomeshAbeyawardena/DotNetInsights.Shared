@@ -1,30 +1,9 @@
-﻿using DotNetInsights.Shared.Contracts;
+using DotNetInsights.Shared.Contracts;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace DotNetInsights.Shared.Library
+namespace DotNetInsights.Shared.Services
 {
-    public static class ExceptionHandler
-    {
-        public static ITry Try(this Action @try)
-        {
-            return DefaultTry.Try(@try);
-        }
-
-        public static ITry<Task> TryAsync(this Func<Task> @try)
-        {
-            return Try(@try);
-        }
-
-        public static ITry<TOut> Try<TOut>(this Func<TOut> @try)
-        {
-            return DefaultTry<TOut>.Try(@try);
-        }
-    }
-
     public class DefaultTry : ITry
     {
         private ConcurrentQueue<Action> _tryQueue;
@@ -37,23 +16,28 @@ namespace DotNetInsights.Shared.Library
 
         public void Invoke()
         {
-            while(_tryQueue.TryDequeue(out var tryItem))
-            {
-                try
-                {
-                    tryItem();
-                }
-                catch(Exception ex)
-                {
-                    _catch.Invoke(ex);
-                }
-            }
+            OnInvoke(_tryQueue, queueItem => queueItem());
         }
 
         public ITry ThenTry(Action tryAction)
         {
             _tryQueue.Enqueue(tryAction);
             return this;
+        }
+
+        protected void OnInvoke<T>(ConcurrentQueue<T> queue, Action<T> queueInvoker)
+        {
+            while(queue.TryDequeue(out var tryItem))
+            {
+                try
+                {
+                    queueInvoker(tryItem);
+                }
+                catch(Exception ex)
+                {
+                    _catch.Invoke(ex);
+                }
+            }
         }
 
         protected DefaultTry(Action tryAction)
@@ -68,6 +52,7 @@ namespace DotNetInsights.Shared.Library
             return new DefaultTry(tryAction);
         }
     }
+    
     public class DefaultTry<TOut> : DefaultTry, ITry<TOut>
     {
         private ConcurrentQueue<Func<TOut>> _tryQueue;
@@ -79,14 +64,15 @@ namespace DotNetInsights.Shared.Library
             return _catch;
         }
 
-        public new void Invoke()
+        public TOut Invoke()
         {
-            throw new NotImplementedException();
+            OnInvoke(_tryQueue, queueItem => queueItem());
         }
 
         public ITry<TOut> ThenTry(Func<TOut> tryAction)
         {
-            throw new NotImplementedException();
+            _tryQueue.Enqueue(tryAction);
+            return this;
         }
 
         protected DefaultTry(Func<TOut> tryAction)
@@ -102,7 +88,40 @@ namespace DotNetInsights.Shared.Library
             return new DefaultTry<TOut>(tryAction);
         }
     }
-    
 
+    public class DefaultTry<TOut, TIn> : DefaultTry<TOut>, ITry<TOut, TIn>
+    {
+        private ConcurrentQueue<Func<TOut>> _tryQueue;
+        private readonly ICatch<TOut> _catch; 
 
+        public ICatch<TOut> Catch(Func<TOut> catchAction, params Exception[] exceptions)
+        {
+            _catch.Catch(catchAction, exceptions);
+            return _catch;
+        }
+
+        public override void Invoke(TIn value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ITry<TOut> ThenTry(Func<TOut> tryAction)
+        {
+            _tryQueue.Enqueue(tryAction);
+            return this;
+        }
+
+        protected DefaultTry(Func<TOut> tryAction)
+            : base(null)
+        {
+            _tryQueue = new ConcurrentQueue<Func<TOut>>();
+            _catch = new DefaultCatch<TOut>();
+            ThenTry(tryAction);
+        }
+
+        public static ITry<TOut> Try(Func<TOut> tryAction)
+        {
+            return new DefaultTry<TOut>(tryAction);
+        }
+    }
 }
