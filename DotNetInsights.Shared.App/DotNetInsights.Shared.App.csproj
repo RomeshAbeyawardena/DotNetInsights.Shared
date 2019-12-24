@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetInsights.Shared.Contracts\DotNetInsights.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\DotNetInsights.Shared.Domains\DotNetInsights.Shared.Domains.csproj" />
+    <ProjectReference Include="..\DotNetInsights.Shared.Library\DotNetInsights.Shared.Library.csproj" />
+    <ProjectReference Include="..\DotNetInsights.Shared.Services\DotNetInsights.Shared.Services.csproj" />
+    <ProjectReference Include="..\DotNetInsights.Shared.Web\DotNetInsights.Shared.Web.csproj" />
+  </ItemGroup>
+
+</Project>
