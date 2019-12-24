@@ -7,20 +7,20 @@ namespace DotNetInsights.Shared.Contracts
     {
         void Invoke();
         ITry ThenTry(Action tryAction);
-        ICatch Catch(Action catchAction, params Exception[] exceptions);
+        ICatch Catch(Action<Exception> catchAction, params Type[] exceptions);
     }
 
     public interface ITry<TOut> : ITry
     {
-        new IEnumerable<TOut> Invoke();
+        new TOut Invoke();
         ITry<TOut> ThenTry(Func<TOut> tryAction);
-        ICatch<TOut> Catch(Func<TOut> catchAction, params Exception[] exceptions);
+        ICatch<TOut> Catch(Func<Exception, TOut> catchAction, params Type[] exceptions);
     }
 
-    public interface ITry<TOut, TIn> : ITry
+    public interface ITry<TIn, TOut> : ITry
     {
         TOut Invoke(TIn value);
-        ITry<TOut, TIn> ThenTry(Func<TOut, TIn> tryAction);
-        ICatch<TOut> Catch(Func<TOut> catchAction, params Exception[] exceptions);
+        ITry<TIn, TOut> ThenTry(Func<TIn, TOut> tryAction);
+        ICatch<TIn, TOut> Catch(Func<Exception, TOut> catchAction, params Type[] exceptions);
     }
 }

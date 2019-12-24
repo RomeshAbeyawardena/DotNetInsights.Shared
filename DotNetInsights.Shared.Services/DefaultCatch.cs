@@ -7,49 +7,65 @@ namespace DotNetInsights.Shared.Services
 {
     public class DefaultCatch : ICatch
     {
-        private ISwitch<Exception, Action> _catchSwitch;
-        public ICatch Catch(Action catchAction, params Exception[] exceptions)
+        private readonly ISwitch<Type, Action<Exception>> _catchSwitch;
+        public ICatch Catch(Action<Exception> catchAction, params Type[] exceptions)
         {
             _catchSwitch.CaseWhen(exceptions.FirstOrDefault(), catchAction, exceptions);
             return this;
         }
 
-        public virtual void Invoke(Exception exception)
+        public virtual void Invoke(Type exceptionType)
         {
-            _catchSwitch.Case(exception);
+            _catchSwitch.Case(exceptionType);
+        }
+
+        public ITry Instance { get; private set; }
+
+        public DefaultCatch(ITry tryInstance)
+        {
+            Instance = tryInstance;
         }
     }
-    public sealed class DefaultCatch<TOut> : DefaultCatch, ICatch<TOut>
+    public class DefaultCatch<TOut> : DefaultCatch, ICatch<TOut>
     {
-        private ISwitch<Exception, Func<TOut>> _catchSwitch;
-        public ICatch<TOut> Catch(Func<TOut> catchReturnAction, params Exception[] exceptions)
+        private ISwitch<Type, Func<Exception, TOut>> _catchSwitch;
+        public ICatch<TOut> Catch(Func<Exception, TOut> catchReturnAction, params Type[] exceptions)
         {
             _catchSwitch.CaseWhen(exceptions.FirstOrDefault(), catchReturnAction, exceptions);
             return this;
         }
 
-        public DefaultCatch()
+        public new ITry<TOut> Instance { get; private set; }
+
+        public DefaultCatch(ITry<TOut> tryInstance)
+            : base(tryInstance)
         {
-            _catchSwitch = DefaultSwitch.Create<Exception, Func<TOut>>();
+            Instance = tryInstance;
+            _catchSwitch = DefaultSwitch.Create<Type, Func<Exception, TOut>>();
+        }
+
+        protected DefaultCatch(ITry tryInstance)
+            : base(tryInstance)
+        {
+            _catchSwitch = DefaultSwitch.Create<Type, Func<Exception, TOut>>();
         }
     }
-    public sealed class DefaultTry<TOut, TIn> : DefaultTry<TOut>, ITry<TOut, TIn>
+
+    public sealed class DefaultCatch<TIn, TOut> : DefaultCatch<TOut>, ICatch<TIn, TOut>
     {
-        private readonly ConcurrentQueue<Func<TOut, TIn>> _queue;
-        
-        private DefaultTry(Func<TOut, TIn> tryAction)
-            : base(null)
+        private ISwitch<Type, Func<Exception, TIn, TOut>> _catchSwitch;
+        public DefaultCatch(ITry<TIn, TOut> tryInstance)
+            : base(tryInstance)
         {
-            _queue = new ConcurrentQueue<Func<TOut, TIn>>();
-            ThenTry(tryAction);
+
         }
 
-        public ITry<TOut, TIn> ThenTry(Func<TOut, TIn> tryAction)
+        public new ITry<TIn, TOut> Instance { get; }
+
+        public ICatch<TIn, TOut> Catch(Func<Exception, TIn, TOut> catchReturnAction, params Type[] exceptions)
         {
-            _queue.Enqueue(tryAction);
+            _catchSwitch.CaseWhen(exceptions.FirstOrDefault(), catchReturnAction, exceptions);
             return this;
         }
-
-
     }
 }

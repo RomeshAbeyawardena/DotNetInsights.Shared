@@ -13,7 +13,7 @@ namespace DotNetInsights.Shared.Contracts
     public interface IAppHost<TStartup> : IAppHost
     {
         object Run(Func<TStartup, object> getMember);
-        Task RunAsync(Func<TStartup, Task> getMemberTask);
+        Task RunAsync(Func<TStartup, Task<object>> getMemberTask);
         Task<T> RunAsync<T>(Func<TStartup, Task<T>> getMemberTask);
     }
 }
