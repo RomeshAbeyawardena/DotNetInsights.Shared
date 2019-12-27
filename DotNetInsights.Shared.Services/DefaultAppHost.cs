@@ -19,7 +19,7 @@ namespace DotNetInsights.Shared.Services
         {
             this.startupType = startupType;
             this.serviceProvider = serviceProvider;
-            
+
         }
 
         public object Run(string methodName)
@@ -45,7 +45,7 @@ namespace DotNetInsights.Shared.Services
     {
         protected new TStartup StartupService => (TStartup)base.StartupService;
         protected new ILogger<TStartup> logger;
-        public DefaultAppHost(IServiceProvider serviceProvider) 
+        public DefaultAppHost(IServiceProvider serviceProvider)
             : base(typeof(TStartup), serviceProvider)
         {
             this.logger = serviceProvider.GetRequiredService<ILogger<TStartup>>();
@@ -54,11 +54,13 @@ namespace DotNetInsights.Shared.Services
         public object Run(Func<TStartup, object> getMember)
         {
             //, ex => logger.LogError(ex, "An error occurred"), catchAll: true
-            return ExceptionHandler
-                .Try<TStartup, object>((a) => getMember(a))
-                .Catch(exception => logger.LogError(exception, "An error has occurred {0}", exception.Message), typeof(Exception))
-                .Instance
-                .Invoke(StartupService);
+            var tryHandler = ExceptionHandler
+                .Try<TStartup, object>((a) => getMember(a));
+
+            tryHandler
+                .Catch((exception) => logger.LogError(exception, "An error has occurred {0}", exception.Message), typeof(Exception));
+
+           return tryHandler.Invoke(StartupService);
         }
 
         public async Task RunAsync(Func<TStartup, Task<object>> getMemberTask)
@@ -69,8 +71,12 @@ namespace DotNetInsights.Shared.Services
 
         public async Task<T> RunAsync<T>(Func<TStartup, Task<T>> getMemberTask)
         {
-             return await ExceptionHandler.TryAsync<TStartup, T>(async(startup) => await getMemberTask(startup))
-               .Invoke(StartupService);
+            var tryHandler = ExceptionHandler.TryAsync<TStartup, T>(async (startup) => await getMemberTask(startup));
+
+            tryHandler.Catch((exception) => logger.LogError(exception, "An error has occurred {0}", exception.Message), typeof(Exception));
+            return await tryHandler.Invoke(StartupService);
+
+
             //return await getMemberTask.TryAsync(StartupService, ex => logger.LogError(ex, "An error occurred"), catchAll: true).ConfigureAwait(false);
         }
     }

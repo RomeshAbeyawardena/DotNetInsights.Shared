@@ -36,7 +36,7 @@ namespace DotNetInsights.Shared.Services
                 }
                 catch(Exception ex)
                 {
-                    _catch.Invoke(ex.GetType());
+                    _catch.Invoke(ex.GetType(), ex);
                 }
             }
         }
@@ -70,14 +70,14 @@ namespace DotNetInsights.Shared.Services
                 }
                 catch(Exception ex)
                 {
-                    _catch.Invoke(ex.GetType());
+                    _catch.Invoke(ex.GetType(), ex);
                 }
             }
 
             return default;
         }
 
-        public ICatch<TOut> Catch(Func<Exception, TOut> catchAction, params Type[] exceptions)
+        public new ICatch<TOut> Catch(Action<Exception> catchAction, params Type[] exceptions)
         {
             _catch.Catch(catchAction, exceptions);
             return _catch;
@@ -112,9 +112,9 @@ namespace DotNetInsights.Shared.Services
     public class DefaultTry<TIn, TOut> : DefaultTry<TOut>, ITry<TIn, TOut>
     {
         private ConcurrentQueue<Func<TIn, TOut>> _tryQueue;
-        private readonly ICatch<TOut> _catch; 
+        private readonly ICatch<TIn, TOut> _catch; 
 
-        public ICatch<TOut> Catch(Func<Exception, TOut> catchAction, params Type[] exceptions)
+        public new ICatch<TIn, TOut> Catch(Action<Exception> catchAction, params Type[] exceptions)
         {
             _catch.Catch(catchAction, exceptions);
             return _catch;
@@ -130,7 +130,13 @@ namespace DotNetInsights.Shared.Services
                 }
                 catch(Exception ex)
                 {
-                    _catch.Invoke(ex.GetType());
+                    var exceptionType = ex.GetType();
+
+                    
+                    if(_catch.Invoke(exceptionType, ex)) 
+                        return default;
+                    
+                    _catch.Invoke(exceptionType.BaseType, ex);
                 }
             }
 
@@ -152,7 +158,7 @@ namespace DotNetInsights.Shared.Services
             : base(null)
         {
             _tryQueue = new ConcurrentQueue<Func<TIn, TOut>>();
-            _catch = new DefaultCatch<TOut>(this);
+            _catch = new DefaultCatch<TIn, TOut>(this);
             ThenTry(tryAction);
         }
 

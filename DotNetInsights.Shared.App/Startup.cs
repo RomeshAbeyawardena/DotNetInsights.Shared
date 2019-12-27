@@ -8,6 +8,7 @@ namespace DotNetInsights.Shared.App
         public async Task<int> Begin()
         {
             Console.WriteLine("I was run");
+            throw new NullReferenceException();
             return 0;
         }
     }
