@@ -63,12 +63,6 @@ namespace DotNetInsights.Shared.Services
            return tryHandler.Invoke(StartupService);
         }
 
-        public async Task RunAsync(Func<TStartup, Task<object>> getMemberTask)
-        {
-            await RunAsync(getMemberTask);
-            //await getMemberTask.TryAsync(StartupService, ex => logger.LogError(ex, "An error occurred"), catchAll: true).ConfigureAwait(false);
-        }
-
         public async Task<T> RunAsync<T>(Func<TStartup, Task<T>> getMemberTask)
         {
             var tryHandler = ExceptionHandler.TryAsync<TStartup, T>(async (startup) => await getMemberTask(startup));
